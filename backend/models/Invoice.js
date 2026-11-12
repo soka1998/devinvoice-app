@@ -144,3 +144,35 @@ const invoiceSchema = new mongoose.Schema(
     }
 
 );
+
+//Automatically calculte subtotal ,TVA,and total BEFORE validating and saving 
+invoiceSchema.pre('validate', function (next) {
+    if (this.items && this.items.length > 0) {
+        //المجموع قبل الضريبة
+        let calculatedSubtotal = 0;
+        //مجموع الضرائب
+        let calculatedTaxTotal = 0;
+
+        this.items.forEach((item) => {
+            //calculate amount for each line item 
+            const lineAmount = item.quantity * item.unitPrice;
+            item.amount = Math.round(lineAmount * 100) / 100;
+            calculateSubtotal += item.amount;
+
+
+            //calculate tax for this line item 
+            const lineTax = item.amount * (item.taxRate / 100);
+            calculatedTaxTotal += lineTax;
+        });
+
+
+        thissubtotal = Math.round(calculatedSubtotal * 100) / 100;
+        this.taxTotal = Math.round(calculatedSubtotal * 100) / 100;
+        this.total = Math.round((this.subtotal + this.taxTotal) *
+            100) / 100;
+    }
+    next();
+
+});
+constInvoice = mongoose.model('Invoice', invoiceSchema);
+export default Invoice;
